@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Nav = () => {
   const [show, setShow] = useState(false);
+  const { pathname } = window.location;
+  const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState('');
 
+  const handleChange = (e) => {
+    setSearchValue(e.target.value);
+    navigate(`/search?q=${e.target.value}`);
+  };
   useEffect(() => {
     window.addEventListener('scroll', () => {
       if (window.scrollY > 50) {
@@ -26,6 +34,7 @@ const Nav = () => {
           onClick={() => (window.location.href = '/')}
         />
       </Logo>
+      {pathname === '/' ? <Login></Login> : <Input onChange={handleChange} />}
     </NavWrapper>
   );
 };
@@ -57,6 +66,33 @@ const Logo = styled.a`
     display: block;
     width: 100%;
   }
+`;
+
+const Login = styled.a`
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border: 1px solid #f9f9f9;
+  border-radius: 4px;
+  transition: all 0.2s ease 0s;
+
+  &:hover {
+    background-color: #f9f9f9;
+    color: #000;
+    border-color: transparent;
+  }
+`;
+
+const Input = styled.input`
+  position: fixed;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background-color: rgba(0, 0, 0, 0.582);
+  border-radius: 5px;
+  color: white;
+  padding: 5px;
+  border: none;
 `;
 
 export default Nav;

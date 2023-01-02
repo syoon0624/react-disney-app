@@ -28,11 +28,7 @@ const Nav = () => {
   return (
     <NavWrapper show={show}>
       <Logo>
-        <img
-          alt="Disney Plus logo"
-          src="/images/logo.svg"
-          onClick={() => (window.location.href = '/')}
-        />
+        <img alt="Disney Plus logo" src="/images/logo.svg" onClick={() => (window.location.href = '/')} />
       </Logo>
       {pathname === '/' ? <Login></Login> : <Input onChange={handleChange} />}
     </NavWrapper>

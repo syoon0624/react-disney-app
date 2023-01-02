@@ -1,12 +1,41 @@
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Nav = () => {
+  const initialUserData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : {};
+
   const [show, setShow] = useState(false);
   const { pathname } = window.location;
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
+
+  const [userData, setUserData] = useState(initialUserData);
+
+  const auth = getAuth();
+  const provider = new GoogleAuthProvider();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate('/');
+      } else if (user && pathname === '/') {
+        navigate('/main');
+      }
+    });
+  }, [auth, navigate, pathname]);
+
+  const handleAuth = async () => {
+    try {
+      const data = await signInWithPopup(auth, provider);
+      console.log(data);
+      setUserData(data.user);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleChange = (e) => {
     setSearchValue(e.target.value);
@@ -25,12 +54,33 @@ const Nav = () => {
     };
   }, []);
 
+  const handleLogOut = async () => {
+    try {
+      await signOut(auth);
+      setUserData({});
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <NavWrapper show={show}>
       <Logo>
         <img alt="Disney Plus logo" src="/images/logo.svg" onClick={() => (window.location.href = '/')} />
       </Logo>
-      {pathname === '/' ? <Login></Login> : <Input onChange={handleChange} />}
+      {pathname === '/' ? (
+        <Login onClick={handleAuth}>Login</Login>
+      ) : (
+        <>
+          <Input onChange={handleChange} />
+          <SignOut>
+            <UserImg src={userData.photoURL} alt={userData.displayName} />
+            <DropDown>
+              <span onClick={handleLogOut}>Sign out</span>
+            </DropDown>
+          </SignOut>
+        </>
+      )}
     </NavWrapper>
   );
 };
@@ -64,6 +114,41 @@ const Logo = styled.a`
   }
 `;
 
+const DropDown = styled.div`
+  position: absolute;
+  top: 48px;
+  right: 0px;
+  background: rgb(19, 19, 19);
+  border: 1px solid rgba(151, 151, 151, 0.34);
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  width: 100px;
+  opacity: 0;
+`;
+
+const SignOut = styled.div`
+  position: relative;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  &:hover {
+    ${DropDown} {
+      opacity: 1;
+      transition-duration: 1s;
+    }
+  }
+`;
+
+const UserImg = styled.img`
+  height: 100%;
+  border-radius: 50%;
+`;
+
 const Login = styled.a`
   background-color: rgba(0, 0, 0, 0.6);
   padding: 8px 16px;
@@ -88,7 +173,7 @@ const Input = styled.input`
   border-radius: 5px;
   color: white;
   padding: 5px;
-  border: none;
+  border: 1px solid white;
 `;
 
 export default Nav;
